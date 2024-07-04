@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt \
     && rm -rf /root/.cache  
 
 RUN pip install --upgrade pip 
-RUN pip install azure-identity azure-cosmos pydantic-settings quart langchain langchain_community llama-index chromadb openai anthropic cohere langchain_openai langchain_anthropic langchain_cohere langchain_chroma langchain-google-genai llama-index-vector-stores-chroma llama-index-llms-ollama llama-index-embeddings-ollama filetype accelerate
+RUN pip install azure-identity azure-cosmos pydantic-settings quart langchain langchain_community llama-index chromadb openai anthropic cohere langchain_openai langchain_anthropic langchain_cohere langchain_chroma langchain-google-genai llama-index-vector-stores-chroma llama-index-llms-ollama llama-index-embeddings-ollama filetype accelerate langchainhub
   
 COPY . /usr/src/app/  
 COPY --from=frontend /home/node/app/static  /usr/src/app/static/
