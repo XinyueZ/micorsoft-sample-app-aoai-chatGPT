@@ -33,6 +33,7 @@ from backend.utils import (
     convert_to_pf_format,
     format_pf_non_streaming_response,
 )
+import openai
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -95,7 +96,7 @@ MS_DEFENDER_ENABLED = os.environ.get("MS_DEFENDER_ENABLED", "true").lower() == "
 
 
 # Initialize Azure OpenAI Client
-def init_openai_client():
+def init_openai_client() -> openai.OpenAI:
     azure_openai_client = None
     try:
         # API version check
@@ -139,13 +140,15 @@ def init_openai_client():
         # Default Headers
         default_headers = {"x-ms-useragent": USER_AGENT}
 
-        azure_openai_client = AsyncAzureOpenAI(
-            api_version=app_settings.azure_openai.preview_api_version,
-            api_key=aoai_api_key,
-            azure_ad_token_provider=ad_token_provider,
-            default_headers=default_headers,
-            azure_endpoint=endpoint,
-        )
+        # azure_openai_client = AsyncAzureOpenAI(
+        #     api_version=app_settings.azure_openai.preview_api_version,
+        #     api_key=aoai_api_key,
+        #     azure_ad_token_provider=ad_token_provider,
+        #     default_headers=default_headers,
+        #     azure_endpoint=endpoint,
+        # )
+
+        azure_openai_client = openai.OpenAI()
 
         return azure_openai_client
     except Exception as e:
@@ -314,7 +317,7 @@ async def send_chat_request(request_body, request_headers):
 
     try:
         azure_openai_client = init_openai_client()
-        raw_response = await azure_openai_client.chat.completions.with_raw_response.create(**model_args)
+        raw_response = azure_openai_client.chat.completions.with_raw_response.create(**model_args)
         response = raw_response.parse()
         apim_request_id = raw_response.headers.get("apim-request-id") 
     except Exception as e:
@@ -344,8 +347,8 @@ async def stream_chat_request(request_body, request_headers):
     response, apim_request_id = await send_chat_request(request_body, request_headers)
     history_metadata = request_body.get("history_metadata", {})
     
-    async def generate():
-        async for completionChunk in response:
+    async def generate():  
+        for completionChunk in response:
             yield format_stream_response(completionChunk, history_metadata, apim_request_id)
 
     return generate()
